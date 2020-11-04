@@ -1,4 +1,4 @@
-CRIMEMAP
-"Get or Post realtime happenings on crime for a safer society"
+# CRIMEMAP
 
 - Practice flask project
+- Realtime crime monitoring and reporting web app.
