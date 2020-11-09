@@ -3,7 +3,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crime Map</title>
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY" async defer></script>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR-API-KEY" async defer></script>
   <script type="text/javascript">
     
     var map;
@@ -26,17 +27,41 @@
 
     function placeMarker(location) {
       if (marker) {
-        marker.setPosition(location);        
+        marker.setPosition(location);     
       }else {
         marker = new google.maps.Marker({
         position: location,
         map: map 
         });
       }
+      document.getElementById('latitude').value = location.lat();
+      document.getElementById('longitude').value = location.lng();
     }
   </script>
 </head>
 <body onload="initialize()">
-  <div id="map-canvas" style="width: 80%; height: 500px;"></div>
-</body>
+  <h1>CrimeMap</h1>
+  <p>A map of recent criminal activity in the
+  Grahamstown area.</p>
+  <div id="map-canvas" style="width:70%; height:500px"></div>
+  <div id="newcrimeform">
+    <h2>Report a crime</h2>
+    <form action="/submitcrime" method="POST">
+      <label for="category">Category</label>
+      <select name="category" id="category">
+        <option value="mugging">Mugging</option>
+        <option value="break-in">Break-in</option>
+      </select>
+      <label for="date">Date</label>
+        <input name="date" id="date" type="date">
+      <label for="latitude">Latitude</label>
+        <input name="latitude" id="latitude" type="text">
+      <label for="longitude">Longitude</label>
+        <input name="longitude" id="longitude" type="text">
+      <label for="description">Description</label>
+        <textarea name="description" id="description" placeholder="A brief but detailed description of the crime"></textarea>
+        <input type="submit" value="Submit">
+    </form>
+  </div>
+  </body>
 </html>
