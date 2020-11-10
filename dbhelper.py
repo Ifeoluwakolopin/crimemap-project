@@ -11,13 +11,22 @@ class DBHelper:
             db=database
         )
 
-    def get_all_inputs(self):
+    def get_all_crimes(self):
         connection = self.connect()
         try:
-            query = "SELECT description FROM crimes;"
+            query = "SELECT latitude, logitude, date, category, description FROM crimes;"
             with connection.cursor() as cursor:
                 cursor.execute(query)
-            return cursor.fetchall()
+            named_crimes = []
+            for crime in crimes:
+                named_crimes.append({
+                    'latitude':crime[0],
+                    'longitude':crime[1],
+                    'date':crime[2],
+                    'category':crime[3],
+                    'description':crime[4]
+                })
+            return named_crimes    
         finally:
             connection.close()
 
