@@ -34,8 +34,8 @@ def format_date(userdate):
         return None
 
 def clean_string(userinput):
-    whitelist = string.letters + string.digits + "!?$.,;:-'()&"
-    return filter(lambda x:x in whitelist, userinput)
+    whitelist = string.ascii_letters + string.digits + "!?$.,;:-'()&"
+    return "".join(character for character in userinput if character in whitelist)
 
 @app.route("/submitcrime", methods=['POST'])
 def submitcrime():
