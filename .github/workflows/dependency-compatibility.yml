@@ -1,0 +1,58 @@
+name: Dependency compatibility
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version-file: .python-version
+      - name: Install and verify pinned dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir pip==26.2.2 setuptools==84.2.1
+          python -m pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
+          python -m pip check
+          python -m pip list --format=json
+      - name: Compile and smoke-check without a database or external services
+        run: |
+          python -m compileall -q crimemap.py dbhelper.py db_setup.py
+          python - <<'PY'
+          import sys
+          import types
+
+          config = types.ModuleType("dbconfig")
+          config.db_user = "unused-smoke-user"
+          config.db_password = "unused-smoke-password"
+          sys.modules["dbconfig"] = config
+
+          import cryptography
+          import pymysql
+          from crimemap import app, clean_string, format_date
+
+          assert clean_string("A<Crime> 12!?") == "ACrime12!?"
+          assert format_date("2026-10-21") == "2026-10-21"
+          assert format_date("not-a-date") is None
+          routes = {rule.rule: rule.methods for rule in app.url_map.iter_rules()}
+          assert "GET" in routes["/"] and "GET" in routes["/clear"]
+          assert "POST" in routes["/submitcrime"]
+          with app.app_context():
+              app.jinja_env.get_template("home.html")
+          with app.test_client() as client:
+              assert client.get("/static/css/style.css").status_code == 200
+              assert client.get("/missing-smoke-path").status_code == 404
+              assert client.get("/submitcrime").status_code == 405
+          print("Import, parsing, template compilation and non-DB HTTP smoke passed.")
+          print("Root/database/Google Maps integration was not exercised.")
+          PY
